@@ -12,7 +12,7 @@
     <!-- todo argument passing with leader robot and follower robot -->
 
     <!-- main robot load node -->
-    <node pkg="coordination_robot" type="coordination_robot" name="coordination_robot_node_$(arg robot_id)" output="screen">
+    <node pkg="coordination_robot_pkg" type="coordination_robot" name="coordination_robot_node_$(arg robot_id)" output="screen">
         <param name="robot_id" value="$(arg robot_id)"/>
         <param name="robot_total" value="$(arg robot_total)"/>
         <param name="init_x" value="$(arg init_x)"/>

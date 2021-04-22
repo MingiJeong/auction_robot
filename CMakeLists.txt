@@ -3,7 +3,7 @@
 #############################################################################
 
 cmake_minimum_required(VERSION 3.0.2)
-project(coordination_robot)
+project(coordination_robot_pkg)
 
 ###########################################################################
 ## Find catkin packages and libraries for catkin and system dependencies ##
@@ -12,7 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   nav_msgs
   rospy
-  timed_roslaunch
+  message_generation
 )
 
 ##########################################
@@ -24,19 +24,17 @@ catkin_python_setup()
 ## Declare ROS messages, services and actions ##
 ################################################
 
-## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+# Generate messages in the 'msg' folder
+add_message_files(
+  FILES
+  Waypoint_init.msg
+)
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+add_service_files(
+  FILES
+  ServiceRegistration.srv
+)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -47,17 +45,19 @@ catkin_python_setup()
 
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   geometry_msgs#   nav_msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  geometry_msgs
+  std_msgs
+  # nav_msgs
+)
 
 
 ###################################
 ## catkin specific configuration ##
 ###################################
 catkin_package(
- CATKIN_DEPENDS geometry_msgs nav_msgs rospy timed_roslaunch
+ CATKIN_DEPENDS geometry_msgs nav_msgs rospy message_runtime
 )
 
 ###########
@@ -82,6 +82,7 @@ include
 catkin_install_python(PROGRAMS
   nodes/coordination_robot
   nodes/tf_broadcastor
+  nodes/waypoint_send
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
