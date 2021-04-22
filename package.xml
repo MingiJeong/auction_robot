@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>coordination_robot</name>
+  <version>0.1.0</version>
+  <description>The coordination_robot package to let roots synchronize and be aware of
+  the status of other robots</description>
+
+  <maintainer email="mingi.jeong.gr@dartmouth.edu">Mingi Jeong</maintainer>
+
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>nav_msgs</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>timed_roslaunch</build_depend>
+  <build_export_depend>geometry_msgs</build_export_depend>
+  <build_export_depend>nav_msgs</build_export_depend>
+  <build_export_depend>rospy</build_export_depend>
+  <build_export_depend>timed_roslaunch</build_export_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>timed_roslaunch</exec_depend>
+
+
+</package>

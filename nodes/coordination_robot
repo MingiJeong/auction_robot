@@ -1,0 +1,49 @@
+#!/usr/bin/env python
+
+# import of relevant libraries
+import rospy # module for ROS APIs
+from geometry_msgs.msg import PoseWithCovariance
+from tf.transformations import quaternion_from_euler
+from coordination_robot.coordination_robot import CoordinationRobot
+from coordination_robot.coordination_robot_follower import CoordinationRobot_follower
+from coordination_robot.coordination_robot_leader import CoordinationRobot_leader
+
+
+def main():
+    """ Main function """
+    """ each robot will be executing this node by robot_load.launch"""
+
+    # initialization of node
+    rospy.init_node("coordination_robot")
+
+    # Sleep for a few seconds to wait for the registration.
+    rospy.sleep(2)
+
+    robot_id = int(rospy.get_param('~robot_id'))
+    init_x = float(rospy.get_param('~init_x'))
+    init_y = float(rospy.get_param('~init_y'))
+    init_z = float(rospy.get_param('~init_z'))
+    init_yaw = float(rospy.get_param('~init_yaw'))
+    leader_bool = bool(rospy.get_param('~leader'))
+
+    # coordination_robot = CoordinationRobot(robot_id, init_x, init_y, init_z, init_yaw)
+    # print("initial pose {}".format(coordination_robot.init_pose))
+
+    # leader robot
+    if leader_bool:
+        coordination_robot = CoordinationRobot_leader(robot_id, init_x, init_y, init_z, init_yaw)
+        rospy.loginfo("Robot {} initiated as a leader".format(robot_id))
+    # follower robot
+    else:
+        coordination_robot = CoordinationRobot_follower(robot_id, init_x, init_y, init_z, init_yaw)
+        rospy.loginfo("Robot {} initiated as a follower".format(robot_id))
+    
+    # start spin
+    try:
+        coordination_robot.spin()
+    except rospy.ROSInterruptException:
+        rospy.logerr("ROS node interrupted.")
+
+if __name__ == "__main__":
+    """Run the main function."""
+    main()

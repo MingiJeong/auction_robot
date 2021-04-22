@@ -1,0 +1,26 @@
+<launch>
+    <!-- launching arguments passed for main task -->
+    <arg name="robot_id" default=''/>
+    <arg name="robot_total" default=''/>
+    <arg name="init_x" default=''/>
+    <arg name="init_y" default=''/>
+    <arg name="init_z" default=''/>
+    <arg name="init_yaw" default=''/>
+    <arg name="leader" default=''/>
+    <!-- <arg name="follower" default='false'/> -->
+
+    <!-- todo argument passing with leader robot and follower robot -->
+
+    <!-- main robot load node -->
+    <node pkg="coordination_robot" type="coordination_robot" name="coordination_robot_node_$(arg robot_id)" output="screen">
+        <param name="robot_id" value="$(arg robot_id)"/>
+        <param name="robot_total" value="$(arg robot_total)"/>
+        <param name="init_x" value="$(arg init_x)"/>
+        <param name="init_y" value="$(arg init_y)"/>
+        <param name="init_z" value="$(arg init_z)"/>
+        <param name="init_yaw" value="$(arg init_yaw)"/>
+        <param name="leader" value="$(arg leader)"/>
+        <!-- <param name="follower" value="$(arg follower)"/> -->
+    </node>
+
+</launch>
