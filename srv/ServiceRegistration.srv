@@ -1,5 +1,4 @@
 int32 robot_name  # robot name so that leader can retrived the pose of the robot as per instruction
-#nav_msgs/Odometry local_pose  # local pose (based on Odom frame) of the robot sending the request for registration
-geometry_msgs/Point32 global_position
+float32[] global_position
 ---
 bool register_success # registration success result by the leader

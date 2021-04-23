@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import numpy as np
+
 # import of relevant libraries
 import rospy # module for ROS APIs
 import tf
@@ -10,7 +12,10 @@ from tf.transformations import quaternion_from_euler
 # CONSTANT
 DEFAULT_POSE_TOPIC = 'initialpose' # TODO repetition
 DEFAULT_ODOM_TOPIC = 'odom'
+DEFAULT_ODOM_FRAME = 'odom'
+DEFAULT_WORLD_FRAME = 'world'
 RATE = 10
+LOOK_UP_DELAY = 3
 
 class CoordinationRobot():
     def __init__(self, robot_name, robot_total, init_x, init_y, init_z, init_yaw):
@@ -20,7 +25,16 @@ class CoordinationRobot():
         self.init_pose = [init_x, init_y, init_z, init_yaw]
         self._init_pose_pub = rospy.Publisher("tb3_{}".format(str(self.robot_name)) + "/" + DEFAULT_POSE_TOPIC, PoseWithCovariance, queue_size=1)
         self._odom_sub = rospy.Subscriber("tb3_{}".format(str(self.robot_name)) + "/" + DEFAULT_ODOM_TOPIC, Odometry, self._odom_call_back, queue_size=1)
-        self._odom_msg = None
+        self._odom_msg = None # keep updating odom msg to be saved
+
+        # transformation related
+        self.g_T_o = None # transformation matrix of odom frame w.r.t. global frame
+        self._odom_frame = "tb3_{}".format(str(self.robot_name)) + "/" + DEFAULT_ODOM_FRAME
+        self._tf_listener = tf.TransformListener()
+        self.transformed_x_wrt_world = None
+        self.transformed_y_wrt_world = None
+
+        # topic publish rate
         self.rate = rospy.Rate(RATE)
 
     def _odom_call_back(self, msg):
@@ -31,7 +45,30 @@ class CoordinationRobot():
             self._odom_msg = msg
 
     def _look_up_transform(self):
+        """
+        look up transform by listener once the TF tree is established between the robot and world frame
+        """
+        try:
+            self._tf_listener.waitForTransform(DEFAULT_WORLD_FRAME, self._odom_frame, rospy.Time(0), rospy.Duration(LOOK_UP_DELAY))
+            (trans, rot) = self._tf_listener.lookupTransform(DEFAULT_WORLD_FRAME, self._odom_frame, rospy.Time(0))
+            translation = tf.transformations.translation_matrix(trans)  # translation matrix
+            rotation = tf.transformations.quaternion_matrix(rot)  # rotation matrix
+            self.g_T_o = np.dot(translation, rotation)
+            # print("transformation working", self.robot_name)
 
+        except:
+            rospy.logwarn("transformation not working from robot {} to world frame".format(self.robot_name))
+
+    def transform_local_psn_wrt_global(self):
+        """
+        transformation local position (wrt odom) into global position (wrt world)
+        """
+        local_pos_x = self._odom_msg.pose.pose.position.x
+        local_pos_y = self._odom_msg.pose.pose.position.y
+        # robot psn on odom to be transformed wrt world
+        transformed_point = np.dot(self.g_T_o, np.transpose(np.array([local_pos_x,local_pos_y,0,1]))) 
+        self.transformed_x_wrt_world = transformed_point[0]
+        self.transformed_y_wrt_world = transformed_point[1]
 
     def _init_pose_publish(self):
         """
