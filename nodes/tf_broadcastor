@@ -6,9 +6,8 @@ import tf
 import tf2_ros
 from geometry_msgs.msg import PoseWithCovariance, TransformStamped
 
-# CONSTANT
-DEFAULT_POSE_TOPIC = 'initialpose'
-ODOM_FRAME_NAME = 'odom'
+# import custom module
+from coordination_robot_pkg.coordination_robot_super import DEFAULT_POSE_TOPIC, DEFAULT_WORLD_FRAME, DEFAULT_ODOM_FRAME
 
 class TFBroadcastor():
     def __init__(self, robot_total):
@@ -16,23 +15,28 @@ class TFBroadcastor():
         self.robot_total = robot_total
         self.tf_broadcastor_hash_map = dict()
 
+        # setting up subscribers for initialpose
         for i in range(self.robot_total):
             rospy.Subscriber('tb3_{}'.format(str(i)) + "/" +  DEFAULT_POSE_TOPIC, PoseWithCovariance, callback = self._pose_call_back, callback_args=i)
             self.tf_broadcastor_hash_map[i] = tf2_ros.StaticTransformBroadcaster()
 
     def _pose_call_back(self, msg, robot_name):
-        # print("robot name {} pose received".format(robot_name))
+        """
+        initial pose callback function to execute statif tf broadcaster per each robot frame
+        """
         self._static_tf_publisher(msg, robot_name)
 
     def _static_tf_publisher(self, msg, robot_name):
+        """
+        function to broadast static tf between world and robot's odo frame
+        """
         # http://wiki.ros.org/tf2/Tutorials/Writing%20a%20tf2%20static%20broadcaster%20%28Python%29
-        # broadcaster = tf2_ros.StaticTransformBroadcaster()
         static_transformStamped = TransformStamped()
 
         # static transform message header
         static_transformStamped.header.stamp = rospy.Time.now()
-        static_transformStamped.header.frame_id = "world"
-        static_transformStamped.child_frame_id = "tb3_{}".format(str(robot_name)) + "/" + ODOM_FRAME_NAME
+        static_transformStamped.header.frame_id = DEFAULT_WORLD_FRAME
+        static_transformStamped.child_frame_id = "tb3_{}".format(str(robot_name)) + "/" + DEFAULT_ODOM_FRAME
 
         # translation
         static_transformStamped.transform.translation.x = float(msg.pose.position.x)
@@ -65,11 +69,9 @@ def main():
     # Initialization of the broadcasting class
     tfbroadcastor = TFBroadcastor(robot_total)
 
-    # If interrupted, send a stop command.
-    # rospy.on_shutdown(flocking_robot.stop)
 
     try:
-        rospy.loginfo("TF Broadcastor ON")
+        rospy.logwarn("TF Broadcastor ON")
         rospy.spin()
     except rospy.ROSInterruptException:
         rospy.logerr("ROS node interrupted.")

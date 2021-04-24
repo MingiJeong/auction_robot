@@ -1,4 +1,4 @@
-int32 robot_name  # robot name so that leader can retrived the pose of the robot as per instruction
-float32[] global_position
+int32 robot_name  # robot name (follwer robot)
+float32[] global_position  # global position of follower robot
 ---
 bool register_success # registration success result by the leader

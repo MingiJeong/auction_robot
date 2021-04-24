@@ -4,6 +4,8 @@
 import rospy # module for ROS APIs
 from geometry_msgs.msg import PoseWithCovariance
 from tf.transformations import quaternion_from_euler
+
+# custom modules
 from coordination_robot_pkg.coordination_robot_super import CoordinationRobot
 from coordination_robot_pkg.coordination_robot_follower import CoordinationRobot_follower
 from coordination_robot_pkg.coordination_robot_leader import CoordinationRobot_leader
@@ -27,19 +29,18 @@ def main():
     init_yaw = float(rospy.get_param('~init_yaw'))
     leader_bool = bool(rospy.get_param('~leader'))
 
-    # print("robot total received {} ".format(robot_total))
-    # coordination_robot = CoordinationRobot(robot_id, init_x, init_y, init_z, init_yaw)
-    # print("initial pose {}".format(coordination_robot.init_pose))
-
     # leader robot
     if leader_bool:
         coordination_robot = CoordinationRobot_leader(robot_id, robot_total, init_x, init_y, init_z, init_yaw)
-        rospy.loginfo("Robot {} initiated as a leader".format(robot_id))
+        rospy.logwarn("Robot {} initiated as a leader".format(robot_id))
     # follower robot
     else:
         coordination_robot = CoordinationRobot_follower(robot_id, robot_total, init_x, init_y, init_z, init_yaw)
-        rospy.loginfo("Robot {} initiated as a follower".format(robot_id))
+        rospy.logwarn("Robot {} initiated as a follower".format(robot_id))
     
+    # If interrupted, send a stop command.
+    rospy.on_shutdown(coordination_robot.stop)
+
     # start spin
     try:
         coordination_robot.spin()

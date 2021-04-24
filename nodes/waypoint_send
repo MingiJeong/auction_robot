@@ -2,19 +2,32 @@
 
 # import of relevant libraries
 import rospy # module for ROS APIs
-from geometry_msgs.msg import Polygon, Point32
+from geometry_msgs.msg import Polygon, PolygonStamped, Point32
+from std_msgs.msg import Bool
 
-DEFAULT_WP_TOPIC = "waypoints"
-RATE = 10
+# import custom modules
+from coordination_robot_pkg.coordination_robot_super import DEFAULT_WP_TOPIC, RATE, DEFAULT_WORLD_FRAME, DEFAULT_FLUSH_OUT_TOPIC
 
 def waypoint_generator(x1, y1, x2, y2, x3, y3):
-    wp_msg = Polygon()
-    wp_msg.points = [
+    """
+    function to generate waypoint message(type: PolygonStamped) for leader's task (a)
+    """
+    wp_msg = PolygonStamped()
+    wp_msg.header.frame_id = DEFAULT_WORLD_FRAME
+    wp_msg.polygon.points = [
         Point32(x=x1, y=y1),
         Point32(x=x2, y=y2),
         Point32(x=x3, y=y3)
     ]
     return wp_msg
+
+def flush_out_call_back(msg):
+    """
+    function to flush out the waypoint send node (shutdown) after robots reached destinations
+    """
+    if msg.data: # flushout True
+        # rospy.loginfo("Robots achieved tasks and shutdown for this node")
+        rospy.signal_shutdown("Robots achieved tasks and shutdown for this node")
 
 
 def main():
@@ -27,13 +40,21 @@ def main():
     # Sleep for a few seconds to wait for the registration.
     rospy.sleep(2)
 
-    waypoint_publisher = rospy.Publisher(DEFAULT_WP_TOPIC, Polygon, queue_size=1)
+    # setting up publishers/subscribers 
+    waypoint_publisher = rospy.Publisher(DEFAULT_WP_TOPIC, PolygonStamped, queue_size=1)
+    flush_out_subscriber = rospy.Subscriber(DEFAULT_FLUSH_OUT_TOPIC, Bool, flush_out_call_back, queue_size=10)
     rate = rospy.Rate(RATE)
 
-    # TODO waypoint send efficiently
+    # receive waypoints passed by ros param
+    x1 = rospy.get_param('~x1')
+    y1 = rospy.get_param('~y1')
+    x2 = rospy.get_param('~x2')
+    y2 = rospy.get_param('~y2')
+    x3 = rospy.get_param('~x3')
+    y3 = rospy.get_param('~y3')
 
     # polygon message for 3 robots
-    wp_msg = waypoint_generator(1,5, 4,0, -4,0)
+    wp_msg = waypoint_generator(x1, y1, x2, y2, x3, y3)
 
     # start publish
     try:
@@ -41,8 +62,8 @@ def main():
             waypoint_publisher.publish(wp_msg)
             rate.sleep()
 
-    except rospy.ROSInterruptException:
-        rospy.logerr("ROS node interrupted.")
+    except rospy.ROSInterruptException as e:
+        rospy.logerr("ROS node interrupted: {}".format(e))
 
 if __name__ == "__main__":
     """Run the main function."""

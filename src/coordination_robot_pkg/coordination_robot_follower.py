@@ -2,29 +2,29 @@
 
 # import of relevant libraries
 import rospy # module for ROS APIs
+import actionlib
 from geometry_msgs.msg import Point32
+from std_msgs.msg import Bool 
 
 # custom modules
-from coordination_robot_super import CoordinationRobot
+from coordination_robot_super import CoordinationRobot, DEFAULT_DESTINATION_ACTION, DEFAULT_REGISTER_SERVICE, DEFAULT_WP_ALLOCATE_INTENTION_TOPIC, DEFAULT_FLUSH_OUT_TOPIC
 from coordination_robot_pkg.srv import ServiceRegistration
 from coordination_robot_pkg.msg import Waypoint_init
+from coordination_robot_pkg.msg import Coordination_DestinationAction, Coordination_DestinationFeedback, Coordination_DestinationResult
 
-# TODO topic name as variable
-DEFAULT_REGISTER_SERVICE = 'register_service'
+
 
 class CoordinationRobot_follower(CoordinationRobot):
     def __init__(self, robot_name, robot_total, init_x, init_y, init_z, init_yaw):
-        """ Constructor """
+        """ Constructor follower robot as inheritance of Superclass"""
         CoordinationRobot.__init__(self, robot_name, robot_total, init_x, init_y, init_z, init_yaw)
-        self.leader_intention = False
-        self.register_result = False
-        
+        self.leader_intention = False # true: after receiving leader's waypoint intention msg
+
         # setting up publishers/subscribers
-        self._wp_allocate_intention_sub = rospy.Subscriber("wp_allocate_intention", Waypoint_init, self._wp_allocate_intention_call_back)
+        self._wp_allocate_intention_sub = rospy.Subscriber(DEFAULT_WP_ALLOCATE_INTENTION_TOPIC, Waypoint_init, self._wp_allocate_intention_call_back)
+        self._flush_out_sub = rospy.Subscriber(DEFAULT_FLUSH_OUT_TOPIC, Bool, self._flush_out_call_back, queue_size=10)
 
     def _wp_allocate_intention_call_back(self, msg):
-        # TODO once receive the state changes as new message
-        # TODO when finish the task action ==> states goes back to original
         """
         receive a custom message type from the leader to indicate that the leader wants to initiatean allocation
         """
@@ -32,12 +32,31 @@ class CoordinationRobot_follower(CoordinationRobot):
             # received the leader's intention
             self.leader_intention = True
 
-            # let's start register my robot then
-            self._register_srv_request()
+    def _flush_out_call_back(self, msg):
+        """
+        callback function to flush out follower robot
+        """
+        self.initialization()
+
+    def initialization(self):
+        """
+        function to initialize properties (follower robot) after finishing one action goal
+        """
+
+        # 1) task related properties
+        self.leader_intention = False
+        self.action_sent = False
+        self.action_destination = None
+        self.register_result = False
+        self.action_received = False
+
+        # 2) dynamic properties
+        self._odom_msg = None 
+
 
     def _register_srv_request(self):
         """
-        follower sends a request for registration as a member to leader
+        follower sends a request (registration as a member) to leader
         """
         # check that follower received the leader's intention and not yet it is registered
         if self.leader_intention and not self.register_result:
@@ -59,20 +78,30 @@ class CoordinationRobot_follower(CoordinationRobot):
                 server_response = register_srv_request(self.robot_name, transformed_psn)
                 
                 if server_response: # register success (True) by the leader
-                    self.register_result = server_response
-                    rospy.loginfo("Robot {} is registered as a team by the leader robot".format(str(self.robot_name)))
+                    self.register_result = server_response # registered flag
+                    rospy.logwarn("Robot {} is registered as a team by the leader robot".format(str(self.robot_name)))
                 # else: it will go until it register since self.register_result still False
                 
             except rospy.ServiceException as e:
-                rospy.loginfo("Robot {} Service call failed {}".format(str(self.robot_name), e))
+                rospy.logwarn("Robot {} Service call failed {}".format(str(self.robot_name), e))
 
     def spin(self):
+        """
+        general spin function for follower robot to loop around 
+        Note: not all of them will do things as it is based on finite state machine
+        """
         while not rospy.is_shutdown():
             # lookup transform
             self._look_up_transform()
 
-            # initial position publish to make TF broadcator can do static TF transform
+            # 1. initial position publish to make TF broadcator can do static TF transform
             self._init_pose_publish()
+
+            # 2. register this robot service request to the leader
+            self._register_srv_request()
+
+            # 3. action_server to receive 
+            self.goal_action_server()
 
             # publish rate
             self.rate.sleep()

@@ -1,5 +1,5 @@
 std_msgs/Header header
 
-string leader_name
-string text_info
-geometry_msgs/Polygon waypoints
+string leader_name  # leader robot name
+string text_info  # leader string message
+geometry_msgs/Polygon waypoints  # intended waypoints
