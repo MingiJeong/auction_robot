@@ -13,7 +13,7 @@ from nav_msgs.msg import Odometry
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
 
 # import custom modules
-from coordination_robot_pkg.msg import Coordination_DestinationAction, Coordination_DestinationGoal, Coordination_DestinationFeedback, Coordination_DestinationResult
+from auction_robot_pkg.msg import Coordination_DestinationAction, Coordination_DestinationGoal, Coordination_DestinationFeedback, Coordination_DestinationResult
 import aux_function
 
 # CONSTANT
@@ -36,7 +36,7 @@ FLUSH_OUT_TIME = 5 # sec
 LINEAR_VELOCITY = 0.2 # m/s
 ANGULAR_VELOCITY = math.pi/10 # rad/s
 
-class CoordinationRobot():
+class AuctionRobot():
     def __init__(self, robot_name, robot_total, init_x, init_y, init_z, init_yaw):
         """ Constructor of Superclass"""
         self.robot_name = robot_name # own robot ID (int)

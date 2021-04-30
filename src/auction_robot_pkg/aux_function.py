@@ -3,6 +3,7 @@
 # import of python modules
 import math
 import numpy as np
+from random import randrange, uniform
 
 def none_in_dict(d):
     """
@@ -17,6 +18,38 @@ def none_in_dict(d):
             return True
     return False
 
+def random_point_generator(point_total=3):
+    """
+    function to generate random waypoints according to the task requirement
+    """
+    generated_point = []
+    # uniform gives you a floating-point value
+    # for i in range(point_total * 2):
+    while len(generated_point) < point_total * 2:
+        float_rand_x = uniform(-5, 5)
+        float_rand_y = uniform(-5, 5)
+        
+        generated_point = closeness_check(generated_point, [float_rand_x, float_rand_y])
+        
+    return generated_point
+
+def closeness_check(generated_list, current_point):
+    """
+    function to check distance between the previously generated waypoin and current potential waypoint
+    """
+    if len(generated_list) == 0:
+        # current point is the first one; just skip
+        pass
+    
+    else:
+        for i in range(len(generated_list)/2):
+            # (i, i+1)
+            point_to_compare = generated_list[i*2:i*2+2]
+            if distance_calculator(current_point, point_to_compare) < 2:
+                break
+        
+    generated_list.extend(current_point)
+    return generated_list
 
 def distance_calculator(point1, point2):
     """

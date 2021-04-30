@@ -25,7 +25,7 @@
 
     <!-- load world file -->
     <include file="$(find gazebo_ros)/launch/empty_world.launch">
-        <arg name="world_name" value="$(find coordination_robot_pkg)/worlds/coordination_gazebo.world"/>
+        <arg name="world_name" value="$(find auction_robot_pkg)/worlds/coordination_gazebo.world"/>
         <arg name="paused" value="false"/>
         <arg name="use_sim_time" value="true"/>
         <arg name="gui" value="true"/>
@@ -70,7 +70,7 @@
     </group>
 
     <!-- coordination task -->
-    <include file="$(find coordination_robot_pkg)/launch/coordination_control.launch">
+    <include file="$(find auction_robot_pkg)/launch/auction_control.launch">
         <arg name="first_tb3_x_pos" value="$(arg first_tb3_x_pos)" />
         <arg name="first_tb3_y_pos" value="$(arg first_tb3_y_pos)" />
         <arg name="first_tb3_z_pos" value="$(arg first_tb3_z_pos)" />
@@ -88,6 +88,6 @@
     </include>
 
     <!-- rviz node -->
-    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find coordination_robot_pkg)/config/coordination_robot.rviz" />
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find auction_robot_pkg)/config/auction_robot.rviz" />
 
 </launch>

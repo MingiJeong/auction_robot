@@ -12,16 +12,16 @@ from geometry_msgs.msg import Polygon, PolygonStamped, Point32
 
 # custome modules
 import aux_function
-from coordination_robot_super import CoordinationRobot, DEFAULT_DESTINATION_ACTION, DEFAULT_REGISTER_SERVICE, DEFAULT_WP_ALLOCATE_INTENTION_TOPIC, DEFAULT_FLUSH_OUT_TOPIC, FLUSH_OUT_TIME, DEFAULT_WP_TOPIC
-from coordination_robot_pkg.msg import Waypoint_init
-from coordination_robot_pkg.srv import ServiceRegistration, ServiceRegistrationResponse
-from coordination_robot_pkg.msg import Coordination_DestinationAction, Coordination_DestinationGoal, Coordination_DestinationFeedback, Coordination_DestinationResult
+from auction_robot_super import AuctionRobot, DEFAULT_DESTINATION_ACTION, DEFAULT_REGISTER_SERVICE, DEFAULT_WP_ALLOCATE_INTENTION_TOPIC, DEFAULT_FLUSH_OUT_TOPIC, FLUSH_OUT_TIME, DEFAULT_WP_TOPIC
+from auction_robot_pkg.msg import Waypoint_init
+from auction_robot_pkg.srv import ServiceRegistration, ServiceRegistrationResponse
+from auction_robot_pkg.msg import Coordination_DestinationAction, Coordination_DestinationGoal, Coordination_DestinationFeedback, Coordination_DestinationResult
 
 
-class CoordinationRobot_leader(CoordinationRobot):
+class AuctionRobot_auctioneer(AuctionRobot):
     def __init__(self, robot_name, robot_total, init_x, init_y, init_z, init_yaw):
         """ Constructor leader robot as inheritance of Superclass"""
-        CoordinationRobot.__init__(self, robot_name, robot_total, init_x, init_y, init_z, init_yaw)
+        AuctionRobot.__init__(self, robot_name, robot_total, init_x, init_y, init_z, init_yaw)
         self.leader = True # make leader flag as true
         self._wp_msg = None # if receing waypoint topic, it saves here
         self._intented_wp = None 

@@ -3,7 +3,7 @@
 #############################################################################
 
 cmake_minimum_required(VERSION 3.0.2)
-project(coordination_robot_pkg)
+project(auction_robot_pkg)
 
 ###########################################################################
 ## Find catkin packages and libraries for catkin and system dependencies ##
@@ -82,7 +82,7 @@ include
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
-  nodes/coordination_robot
+  nodes/auction_robot
   nodes/tf_broadcastor
   nodes/waypoint_send
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

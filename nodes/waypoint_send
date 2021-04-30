@@ -1,16 +1,18 @@
 #!/usr/bin/env python
 
+
 # import of relevant libraries
 import rospy # module for ROS APIs
 from geometry_msgs.msg import Polygon, PolygonStamped, Point32
 from std_msgs.msg import Bool
 
 # import custom modules
-from coordination_robot_pkg.coordination_robot_super import DEFAULT_WP_TOPIC, RATE, DEFAULT_WORLD_FRAME, DEFAULT_FLUSH_OUT_TOPIC
+from auction_robot_pkg.aux_function import random_point_generator
+from auction_robot_pkg.auction_robot_super import DEFAULT_WP_TOPIC, RATE, DEFAULT_WORLD_FRAME, DEFAULT_FLUSH_OUT_TOPIC
 
 def waypoint_generator(x1, y1, x2, y2, x3, y3):
     """
-    function to generate waypoint message(type: PolygonStamped) for leader's task (a)
+    function to generate waypoint message(type: PolygonStamped) for auctioneer's task (a)
     """
     wp_msg = PolygonStamped()
     wp_msg.header.frame_id = DEFAULT_WORLD_FRAME
@@ -20,6 +22,7 @@ def waypoint_generator(x1, y1, x2, y2, x3, y3):
         Point32(x=x3, y=y3)
     ]
     return wp_msg
+
 
 def flush_out_call_back(msg):
     """
@@ -46,12 +49,20 @@ def main():
     rate = rospy.Rate(RATE)
 
     # receive waypoints passed by ros param
-    x1 = rospy.get_param('~x1')
-    y1 = rospy.get_param('~y1')
-    x2 = rospy.get_param('~x2')
-    y2 = rospy.get_param('~y2')
-    x3 = rospy.get_param('~x3')
-    y3 = rospy.get_param('~y3')
+    # x1 = rospy.get_param('~x1')
+    # y1 = rospy.get_param('~y1')
+    # x2 = rospy.get_param('~x2')
+    # y2 = rospy.get_param('~y2')
+    # x3 = rospy.get_param('~x3')
+    # y3 = rospy.get_param('~y3')
+    point_total = rospy.get_param('~point_total')
+    print("point total {}".format(point_total))
+
+    # random waypoint generator
+    # TODO robust with more than 3
+    x1, y1, x2, y2, x3, y3 = random_point_generator(point_total)
+
+    print("random point {}".format([x1, y1, x2, y2, x3, y3]))
 
     # polygon message for 3 robots
     wp_msg = waypoint_generator(x1, y1, x2, y2, x3, y3)

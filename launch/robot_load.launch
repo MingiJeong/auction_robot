@@ -9,7 +9,7 @@
     <arg name="leader" default=''/>
 
     <!-- main robot load node -->
-    <node pkg="coordination_robot_pkg" type="coordination_robot" name="coordination_robot_node_$(arg robot_id)" output="screen">
+    <node pkg="auction_robot_pkg" type="auction_robot" name="auction_robot_node_$(arg robot_id)" output="screen">
         <param name="robot_id" value="$(arg robot_id)"/>
         <param name="robot_total" value="$(arg robot_total)"/>
         <param name="init_x" value="$(arg init_x)"/>

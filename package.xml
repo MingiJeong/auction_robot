@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>coordination_robot_pkg</name>
+  <name>auction_robot_pkg</name>
   <version>0.1.0</version>
-  <description>The coordination_robot package to let roots synchronize and be aware of
+  <description>The coordination_robot package to let robots synchronize and be aware of
   the status of other robots</description>
 
   <maintainer email="mingi.jeong.gr@dartmouth.edu">Mingi Jeong</maintainer>

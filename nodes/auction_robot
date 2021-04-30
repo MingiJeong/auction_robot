@@ -6,9 +6,9 @@ from geometry_msgs.msg import PoseWithCovariance
 from tf.transformations import quaternion_from_euler
 
 # custom modules
-from coordination_robot_pkg.coordination_robot_super import CoordinationRobot
-from coordination_robot_pkg.coordination_robot_follower import CoordinationRobot_follower
-from coordination_robot_pkg.coordination_robot_leader import CoordinationRobot_leader
+from auction_robot_pkg.auction_robot_super import AuctionRobot
+from auction_robot_pkg.auction_robot_follower import AuctionRobot_follower
+from auction_robot_pkg.auction_robot_leader import AuctionRobot_leader
 
 
 def main():
@@ -16,7 +16,7 @@ def main():
     """ each robot will be executing this node by robot_load.launch"""
 
     # initialization of node
-    rospy.init_node("coordination_robot")
+    rospy.init_node("auction_robot")
 
     # Sleep for a few seconds to wait for the registration.
     rospy.sleep(2)
@@ -29,21 +29,21 @@ def main():
     init_yaw = float(rospy.get_param('~init_yaw'))
     leader_bool = bool(rospy.get_param('~leader'))
 
-    # leader robot
+    # auctioneer robot
     if leader_bool:
-        coordination_robot = CoordinationRobot_leader(robot_id, robot_total, init_x, init_y, init_z, init_yaw)
-        rospy.logwarn("Robot {} initiated as a leader".format(robot_id))
-    # follower robot
+        auction_robot = AuctionRobot_auctioneer(robot_id, robot_total, init_x, init_y, init_z, init_yaw)
+        rospy.logwarn("Robot {} initiated as a auctioneer".format(robot_id))
+    # bidder robot
     else:
-        coordination_robot = CoordinationRobot_follower(robot_id, robot_total, init_x, init_y, init_z, init_yaw)
-        rospy.logwarn("Robot {} initiated as a follower".format(robot_id))
+        auction_robot = AuctionRobot_bidder(robot_id, robot_total, init_x, init_y, init_z, init_yaw)
+        rospy.logwarn("Robot {} initiated as a bidder".format(robot_id))
     
     # If interrupted, send a stop command.
-    rospy.on_shutdown(coordination_robot.stop)
+    rospy.on_shutdown(auction_robot.stop)
 
     # start spin
     try:
-        coordination_robot.spin()
+        auction_robot.spin()
     except rospy.ROSInterruptException:
         rospy.logerr("ROS node interrupted.")
 

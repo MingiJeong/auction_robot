@@ -24,7 +24,7 @@
     <arg name="third_tb3_leader" default="false"/>
 
     <!-- TF broadcastor for initial environment set up -->
-    <node pkg="coordination_robot_pkg" type="tf_broadcastor" name="tf_broadcastor" output="screen">
+    <node pkg="auction_robot_pkg" type="tf_broadcastor" name="tf_broadcastor" output="screen">
         <param name="robot_total" value="$(arg robot_total)"/>
     </node>
 

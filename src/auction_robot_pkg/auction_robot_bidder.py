@@ -7,17 +7,17 @@ from geometry_msgs.msg import Point32
 from std_msgs.msg import Bool 
 
 # custom modules
-from coordination_robot_super import CoordinationRobot, DEFAULT_DESTINATION_ACTION, DEFAULT_REGISTER_SERVICE, DEFAULT_WP_ALLOCATE_INTENTION_TOPIC, DEFAULT_FLUSH_OUT_TOPIC
-from coordination_robot_pkg.srv import ServiceRegistration
-from coordination_robot_pkg.msg import Waypoint_init
-from coordination_robot_pkg.msg import Coordination_DestinationAction, Coordination_DestinationFeedback, Coordination_DestinationResult
+from auction_robot_super import AuctionRobot, DEFAULT_DESTINATION_ACTION, DEFAULT_REGISTER_SERVICE, DEFAULT_WP_ALLOCATE_INTENTION_TOPIC, DEFAULT_FLUSH_OUT_TOPIC
+from auction_robot_pkg.srv import ServiceRegistration
+from auction_robot_pkg.msg import Waypoint_init
+from auction_robot_pkg.msg import Coordination_DestinationAction, Coordination_DestinationFeedback, Coordination_DestinationResult
 
 
 
-class CoordinationRobot_follower(CoordinationRobot):
+class AuctionRobot_bidder(AuctionRobot):
     def __init__(self, robot_name, robot_total, init_x, init_y, init_z, init_yaw):
         """ Constructor follower robot as inheritance of Superclass"""
-        CoordinationRobot.__init__(self, robot_name, robot_total, init_x, init_y, init_z, init_yaw)
+        AuctionRobot.__init__(self, robot_name, robot_total, init_x, init_y, init_z, init_yaw)
         self.leader_intention = False # true: after receiving leader's waypoint intention msg
 
         # setting up publishers/subscribers
