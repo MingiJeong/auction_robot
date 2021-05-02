@@ -55,7 +55,6 @@ class AuctionRobot():
         self._init_pose_pub = rospy.Publisher("tb3_{}".format(str(self.robot_name)) + "/" + DEFAULT_POSE_TOPIC, PoseWithCovariance, queue_size=1)
         self._odom_sub = rospy.Subscriber("tb3_{}".format(str(self.robot_name)) + "/" + DEFAULT_ODOM_TOPIC, Odometry, self._odom_call_back, queue_size=1)
         self._flush_out_sub = rospy.Subscriber(DEFAULT_FLUSH_OUT_TOPIC, Bool, self._flush_out_call_back, queue_size=10)
-
         self._wp_allocate_intention_sub = rospy.Subscriber(DEFAULT_WP_ALLOCATE_INTENTION_TOPIC, Waypoint_init, self._wp_allocate_intention_call_back)
 
 
@@ -67,9 +66,8 @@ class AuctionRobot():
         self.transformed_x_wrt_world = None
         self.transformed_y_wrt_world = None
 
-        # whether it is a leader or not flag
+        # whether it is a leader (auctioneer) or not flag
         self.leader = False
-
         self.auctioneer_intention = False # true: after receiving leader's waypoint intention msg
 
         # for service on all robots
@@ -85,7 +83,7 @@ class AuctionRobot():
         self.action_received = False # true: after server receives action goal
 
         # define server for auction win service (including the auctioneer robot, as it bids, too)
-        rospy.Service("tb3_{}".format(str(self.robot_name)) + "/" + DEFAULT_AUCTION_SERVICE, ServiceAuctionResult, self._auction_win_response)
+        rospy.Service("tb3_{}".format(str(self.robot_name)) + "/" + DEFAULT_AUCTION_SERVICE, ServiceAuctionResult, self._auction_result_response)
 
         # setting up action server (apply to all robots including the leader)
         self.action_server = actionlib.SimpleActionServer(
@@ -168,10 +166,8 @@ class AuctionRobot():
 
     def _bid_srv_request(self):
         """
-        bidder sends a request (registration as a member) to leader
+        bidder sends a request (registration to a bid with cost information) to auctioneer
         """
-        # TODO all this finite state machine double check
-
         # check that bidder received the leader's intention and not yet it is registered
         if self.auctioneer_intention and not self.register_result:
         # if self.auctioneer_intention:
@@ -233,7 +229,7 @@ class AuctionRobot():
                 rospy.logwarn("Robot {} Service call failed {}".format(str(self.robot_name), e))
 
 
-    def _auction_win_response(self, request):
+    def _auction_result_response(self, request):
         """
         service response from the request (register auctioneer robot as team member) sent by follower client
         """
@@ -268,13 +264,13 @@ class AuctionRobot():
         function to start goal action server
         http://wiki.ros.org/actionlib_tutorials/Tutorials/Writing%20a%20Simple%20Action%20Server%20using%20the%20Execute%20Callback%20%28Python%29
         """
-        # follower
+        # bidder
         if not self.leader: 
             # the follower has been registered as a team member
             if self.register_result and not self.action_received:
                 self.action_received = True # finite state machine
                 self.action_server.start()
-        # leader
+        # auctioneer
         else: 
             if not self.action_received:
                 self.action_received = True # finite state machine
@@ -445,7 +441,7 @@ class AuctionRobot():
 
     def initialization_all(self):
         """
-        function to initialize properties (follower robot) after finishing one action goal
+        function to initialize properties (all robots: auctioneer & bidder) after finishing one auction goal
         """
 
         # 1) task related properties
@@ -454,8 +450,7 @@ class AuctionRobot():
         self.action_destination = list()
         self.register_result = False
         self.action_received = False
+        self.my_allocated_wps = list()
 
         # 2) dynamic properties
         self._odom_msg = None 
-
-        self.my_allocated_wps = list()

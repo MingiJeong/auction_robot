@@ -36,8 +36,8 @@ class AuctionRobot_auctioneer(AuctionRobot):
         self.target_wps = dict()  # saver of target waypoint as hashmap (key is just numbering)
         self.target_wps_tmp = dict()
         self.total_task = None # saving total task (# of waypoints)
-        self.auction_finish = False
-        self.round = 1
+        self.auction_finish = False # global flag to check finished auction (# round > # task)
+        self.round = 1 # initial round started by auctioneer
         self.wp_auction_allocate_for_robots = dict() # key: robot name / value: allocated waypoint
         self.auction_srv_status = dict() # auction service status for each robot
 
@@ -76,7 +76,7 @@ class AuctionRobot_auctioneer(AuctionRobot):
         for i in range(len(self._wp_msg.polygon.points)):
             self.target_wps[i] = [self._wp_msg.polygon.points[i].x, self._wp_msg.polygon.points[i].y]
 
-        # update initial information related to auction
+        # update initial information related to auction at the beginning
         if self.round == 1 and len(self.target_wps_tmp) == 0:
             # saving total number of tasks matching the number of waypoints
             self.total_task = len(self.target_wps)
@@ -87,12 +87,15 @@ class AuctionRobot_auctioneer(AuctionRobot):
 
     def _wp_allocate_intention_publish(self):
         """
-        publish a custom message to other robots to initiate the coordinated behavior
+        publish a custom message to other robots to send wps to be auctioned
         """
         if (
             self._wp_msg is not None 
             and not self.allocate_state
             ):
+            # condition
+            # 1) _wp_msg subscribed from waypoint_send node
+            # 2) wps is not yet allocated to bidders
 
             # intention message initialization and update
             intention_msg = Waypoint_init()
@@ -117,7 +120,8 @@ class AuctionRobot_auctioneer(AuctionRobot):
         if request.robot_name in self.member_register.keys():
             #  leader's member pose info not saved but the request msg contains it from the member
             if request.distance_cost is not None and self.member_register[request.robot_name] is None:
-                # retrived the pose of the robot (its local frame)
+                # retrived the cost per each waypoint by each robot
+                # key: robot name / value: distance costs in list, e.g., 3 points [d1, d2, d3]
                 self.member_register[request.robot_name] = request.distance_cost
                 
                 return ServiceRegistrationResponse(True)
@@ -126,17 +130,26 @@ class AuctionRobot_auctioneer(AuctionRobot):
                 return ServiceRegistrationResponse(False)
 
     def auction_progress(self):
-        # condition
+        """
+        function to conduct one auction round by collecting cost (bids) from bidders and
+        send the result back to the bidders via "service"
+        """
         if (
             not self.allocate_state 
             and len(self.member_register) == self.robot_total  
             and not aux_function.none_in_dict(self.member_register) 
             and self.round <= self.total_task
             ):
+            # condition
+            # 1) wps is not yet allocated to bidders
+            # 2) all distance costs received from all bidders
+            # 3) no invalid distance cost
+            # 4) auction still going on (less round that it is supposed to be)
+
             # print message key: robot number / value: distance cost to each wp
             rospy.loginfo("Bidding registered: {}".format(self.member_register))
 
-            # 1) find minimum cost wp and robot
+            # 1. find minimum cost wp and robot
             # min cost among entire waypoints by all the robots
             min_value = min(cost for robot_name, distance_cost in self.member_register.items() for cost in distance_cost)
             # robot name and waypoint task number (i) to be allocated
@@ -149,14 +162,14 @@ class AuctionRobot_auctioneer(AuctionRobot):
             if len(min_result) > 1:
                 min_result = min_result[0]
 
-            # 2) information regarding auction win
+            # 2. information regarding auction win
             win_robot = min_result[0][0]
             win_wp_number = min_result[0][1]
             win_wp = self.target_wps[win_wp_number]
 
             rospy.loginfo("win robot: {} / win wp number: {}".format(win_robot, win_wp_number))
 
-            # 3) update dynamic data as one auction round will be finished
+            # 3. update dynamic data as one auction round will be finished
             self.allocate_state = True # allocated state for global check
             self.wp_auction_allocate_for_robots[win_robot].append(win_wp)
             self.target_wps_tmp[win_wp_number] = True
@@ -164,10 +177,15 @@ class AuctionRobot_auctioneer(AuctionRobot):
             
             print("wp_allocate_for_robots {}".format(self.wp_auction_allocate_for_robots))
             
-            # 4) auction result service request sent to bidders
+            # 4. auction result service request sent to bidders
             self._auction_result_srv_request(win_robot, win_wp)
 
     def _auction_result_srv_request(self, win_robot, win_wp):
+        """
+        function to send "service" request to bidders by notifying the result of auction
+        # 1) winner 2) loser case
+        # the service server is instantiated at each robot (see Super class)
+        """
         # iteration
         for i in range(self.robot_total):
             rospy.wait_for_service("tb3_{}".format(str(i)) + "/" + DEFAULT_AUCTION_SERVICE)        
@@ -200,13 +218,17 @@ class AuctionRobot_auctioneer(AuctionRobot):
 
 
     def next_auction_round_auctioneer(self):
-        # condition
-        # 1) auction result service received by all the robots from the previous round
-        # 2) to-go-round is not more than the required total round
+        """
+        function to move to the next auction round
+        """
         if (
             not aux_function.false_in_dict(self.auction_srv_status)
             and self.round <= self.total_task
             ):
+            # condition
+            # 1) auction result service received by all the robots from the previous round
+            # 2) to-go-round is not more than the required total round
+
             print("================================================================")
             rospy.loginfo("moving to the next round {}".format(self.round))
             # allocated state for global check
@@ -244,23 +266,23 @@ class AuctionRobot_auctioneer(AuctionRobot):
 
                     goal = Coordination_DestinationGoal()
 
-                    # list of list https://stackoverflow.com/questions/43130377/how-to-publish-subscribe-a-python-list-of-list-as-topic-in-ros
+                    # list of list (2D matrix for rostopic message)
+                    # https://stackoverflow.com/questions/43130377/how-to-publish-subscribe-a-python-list-of-list-as-topic-in-ros
                     for j in range(len(self.wp_auction_allocate_for_robots[k])):
                         inner_array = array1d()
                         inner_array.array = self.wp_auction_allocate_for_robots[k][j]
 
                         # allocate wp for k th robot
-                        # goal.goal_position = self.wp_auction_allocate_for_robots[k]
                         goal.goal_position.append(inner_array)
 
                     action_client.send_goal(goal, feedback_cb=self.action_feedback_cb)
 
-            self.action_sent = True # flag to prevent this coming again
+            self.action_sent = True # flag to prevent entering this function again
 
 
     def action_periodic_check(self):
         """
-        function to check action completion result 
+        function to check action completion result of each robot
         """
         if self.action_sent:
             # result check
@@ -276,6 +298,7 @@ class AuctionRobot_auctioneer(AuctionRobot):
                         if result:
                             self.action_achieved[k] = True
                             rospy.logwarn("Action success! from robot {}: {}".format(k, result))
+                # in case of a robot faling to win at least one auction
                 else:
                     self.action_achieved[k] = True
                     rospy.logwarn("Action no need as losing auction! from robot {}".format(k))
@@ -284,7 +307,7 @@ class AuctionRobot_auctioneer(AuctionRobot):
         """
         call back function to monitor action feedback (distance to go)
         """
-        return
+        pass # not printing log because it is too disturbing
         # rospy.loginfo("feedback received by robot {}: {}".format(msg.robot_name, msg.distance_to_go))
 
 
@@ -319,28 +342,26 @@ class AuctionRobot_auctioneer(AuctionRobot):
         self.allocate_state = False # False: not allocate / True: allocated
         self.action_achieved = dict()
 
-        # auction related
+        # 2) auction related
         self.target_wps = dict()
         self.target_wps_tmp = dict()
         self.total_task = None # saving total task (# of waypoints)
-        self.auction_finish = False
+        self.auction_finish = False # global flag for auction
         self.round = 1
         self.wp_auction_allocate_for_robots = dict() # key: robot name / value: allocated waypoint
         self.auction_srv_status = dict() # auction service status for each robot
 
-        # 2) for service
+        # 3) for service
         for i in range(self.robot_total):
-            # if i == self.robot_name:
-            #     continue # own robot as a leader skip
             self.member_register[i] = None
             self.wp_auction_allocate_for_robots[i] = list() # auction wp allocation for a specific robot (list will be appended)
             self.auction_srv_status[i] = False
 
-        # 3) for action client (I know repetition, but just for explicit clarification)
+        # 4) for action client (I know repetition, but just for explicit clarification)
         for k in range(self.robot_total):
             self.action_achieved[k] = False
 
-        # 4) for action server
+        # 5) for action server
         self.action_sent = False
         self.register_result = False
         self.action_received = False
@@ -348,8 +369,37 @@ class AuctionRobot_auctioneer(AuctionRobot):
         # 5) dynamic properties
         self._odom_msg = None 
 
-        # 6) auction related
+    def wrap_up_function_auctioneer(self):
+        """
+        general wrap up function to be executed in spin of auctioneer
+        """
+        # lookup transform
+        self._look_up_transform()
 
+        # 1. initial position publish to make TF broadcator can do static TF transform
+        self._init_pose_publish()
+
+        # 2. waypoint allocation intention publish
+        self._wp_allocate_intention_publish()
+
+        # 3. hold an auction
+        self.auction_progress()
+        self.next_auction_round_auctioneer()
+
+        # 4-1. action client sent
+        self.goal_action_client()
+
+        # 4-2. action server receive
+        self.goal_action_server()
+
+        # 4-3. action periodic check
+        self.action_periodic_check()
+
+        # 5. flushout
+        self.flush_out_after_task()
+
+        # publish rate
+        self.rate.sleep()
 
     def spin(self):
         """
@@ -357,29 +407,32 @@ class AuctionRobot_auctioneer(AuctionRobot):
         Note: not all of them will do things as it is based on finite state machine
         """
         while not rospy.is_shutdown():
-            # lookup transform
-            self._look_up_transform()
+            self.wrap_up_function_auctioneer()
 
-            # 1. initial position publish to make TF broadcator can do static TF transform
-            self._init_pose_publish()
+            # # lookup transform
+            # self._look_up_transform()
 
-            # 2. waypoint allocation intention publish
-            self._wp_allocate_intention_publish()
+            # # 1. initial position publish to make TF broadcator can do static TF transform
+            # self._init_pose_publish()
 
-            self.auction_progress()
-            self.next_auction_round_auctioneer()
+            # # 2. waypoint allocation intention publish
+            # self._wp_allocate_intention_publish()
+
+            # # 3. hold an auction
+            # self.auction_progress()
+            # self.next_auction_round_auctioneer()
 
             # # 4-1. action client sent
-            self.goal_action_client()
+            # self.goal_action_client()
 
             # # 4-2. action server receive
-            self.goal_action_server()
+            # self.goal_action_server()
 
-            # # 4-3. action periodic check
-            self.action_periodic_check()
+            # # # 4-3. action periodic check
+            # self.action_periodic_check()
 
-            # # 5. flushout
-            self.flush_out_after_task()
+            # # # 5. flushout
+            # self.flush_out_after_task()
 
-            # publish rate
-            self.rate.sleep()
+            # # publish rate
+            # self.rate.sleep()

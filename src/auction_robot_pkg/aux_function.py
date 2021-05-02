@@ -5,6 +5,14 @@ import math
 import numpy as np
 from random import randrange, uniform
 
+# Constant
+# requirement of assignment about 10 x 10 area
+X_coord_min = -5
+X_coord_max = 5
+Y_coord_min = -5
+Y_coord_max = 5
+CLOSE_DIST_THRESH = 2
+
 def none_in_dict(d):
     """
     function to check whether there is "None" in dict value
@@ -35,14 +43,16 @@ def false_in_dict(d):
 def random_point_generator(point_total=3):
     """
     function to generate random waypoints according to the task requirement
+    Args:
+        the number of point_total to be generated (default 3)
+    Returns:
+        generated points in list format [x1, y1, x2, y2, x3, y3 ...]
     """
     generated_point = []
     # uniform gives you a floating-point value
-    # for i in range(point_total * 2):
     while len(generated_point) < point_total * 2:
-        float_rand_x = uniform(-5, 5)
-        float_rand_y = uniform(-5, 5)
-        # TODO as parameter
+        float_rand_x = uniform(X_coord_min, X_coord_max)
+        float_rand_y = uniform(Y_coord_min, Y_coord_max)
         
         current_point = closeness_check(generated_point, [float_rand_x, float_rand_y])
         if current_point is not None:
@@ -53,6 +63,11 @@ def random_point_generator(point_total=3):
 def closeness_check(generated_list, current_point):
     """
     function to check distance between the previously generated waypoin and current potential waypoint
+    Args:
+        - generated points in list format [x1, y1, x2, y2, x3, y3 ...]
+        - a potential point to be added
+    Returns: 
+        - if current point meet the distance requirement, it is added.
     """
     if len(generated_list) == 0:
         # current point is the first one; just skip
@@ -62,10 +77,9 @@ def closeness_check(generated_list, current_point):
         for i in range(len(generated_list)/2):
             # (i, i+1)
             point_to_compare = generated_list[i*2:i*2+2]
-            if distance_calculator(current_point, point_to_compare) < 2:
+            if distance_calculator(current_point, point_to_compare) < CLOSE_DIST_THRESH:
                 return
         
-    # generated_list.extend(current_point)
     return current_point
 
 def distance_calculator(point1, point2):

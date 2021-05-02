@@ -70,13 +70,12 @@ def main():
 
     # receive total number of waypoints to be generated
     point_total = rospy.get_param('~point_total')
-    print("point total {}".format(point_total))
+    rospy.loginfo("point total {}".format(point_total))
 
     # random waypoint generator
-    # TODO robust with more than 3
     generated_list = random_point_generator(point_total)
 
-    print("random point {}".format(generated_list))
+    rospy.loginfo("random point {}".format(generated_list))
 
     # polygon message for 3 robots
     wp_msg = waypoint_generator(generated_list)

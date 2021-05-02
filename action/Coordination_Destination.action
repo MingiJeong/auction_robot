@@ -1,4 +1,4 @@
-#Goal
+# Goal
 array1d[] goal_position # goal position wrt world frame
 
 ---

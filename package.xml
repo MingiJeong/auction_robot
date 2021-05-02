@@ -2,8 +2,8 @@
 <package format="2">
   <name>auction_robot_pkg</name>
   <version>0.1.0</version>
-  <description>The coordination_robot package to let robots synchronize and be aware of
-  the status of other robots</description>
+  <description>The auction robot package to let robots bid and conduct auction tasks
+  in a sequential way </description>
 
   <maintainer email="mingi.jeong.gr@dartmouth.edu">Mingi Jeong</maintainer>
 
