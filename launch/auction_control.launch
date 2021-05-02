@@ -29,7 +29,7 @@
     </node>
 
     <!-- 1st robot -->
-    <include file="$(find coordination_robot_pkg)/launch/robot_load.launch">
+    <include file="$(find auction_robot_pkg)/launch/robot_load.launch">
         <arg name="robot_id" value="$(arg first_tb3)" />
         <arg name="robot_total" value="$(arg robot_total)" />
         <arg name="init_x" value="$(arg first_tb3_x_pos)" />
@@ -40,7 +40,7 @@
     </include>
 
     <!-- 2nd robot -->
-    <include file="$(find coordination_robot_pkg)/launch/robot_load.launch">
+    <include file="$(find auction_robot_pkg)/launch/robot_load.launch">
         <arg name="robot_id" value="$(arg second_tb3)" />
         <arg name="robot_total" value="$(arg robot_total)" />
         <arg name="init_x" value="$(arg second_tb3_x_pos)" />
@@ -51,7 +51,7 @@
     </include>
 
     <!-- 3rd robot -->
-    <include file="$(find coordination_robot_pkg)/launch/robot_load.launch">
+    <include file="$(find auction_robot_pkg)/launch/robot_load.launch">
         <arg name="robot_id" value="$(arg third_tb3)" />
         <arg name="robot_total" value="$(arg robot_total)" />
         <arg name="init_x" value="$(arg third_tb3_x_pos)" />

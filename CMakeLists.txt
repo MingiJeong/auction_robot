@@ -29,12 +29,14 @@ catkin_python_setup()
 add_message_files(
   FILES
   Waypoint_init.msg
+  array1d.msg
 )
 
 ## Generate services in the 'srv' folder
 add_service_files(
   FILES
   ServiceRegistration.srv
+  ServiceAuctionResult.srv
 )
 
 ## Generate actions in the 'action' folder

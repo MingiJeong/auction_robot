@@ -7,7 +7,7 @@ import tf2_ros
 from geometry_msgs.msg import PoseWithCovariance, TransformStamped
 
 # import custom module
-from coordination_robot_pkg.coordination_robot_super import DEFAULT_POSE_TOPIC, DEFAULT_WORLD_FRAME, DEFAULT_ODOM_FRAME
+from auction_robot_pkg.auction_robot_super import DEFAULT_POSE_TOPIC, DEFAULT_WORLD_FRAME, DEFAULT_ODOM_FRAME
 
 class TFBroadcastor():
     def __init__(self, robot_total):

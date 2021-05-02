@@ -1,5 +1,5 @@
 #Goal
-float32[] goal_position  # goal position wrt world frame
+array1d[] goal_position # goal position wrt world frame
 
 ---
 # Result

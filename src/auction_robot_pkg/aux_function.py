@@ -18,6 +18,20 @@ def none_in_dict(d):
             return True
     return False
 
+def false_in_dict(d):
+    """
+    function to check whether there is "False" in dict value
+    Args:
+        dictionary data
+    Returns:
+        boolean to indicate whether False is existing or not
+    """
+    for key, value in d.items():
+        if not value:
+            return True
+    return False
+
+
 def random_point_generator(point_total=3):
     """
     function to generate random waypoints according to the task requirement
@@ -28,8 +42,11 @@ def random_point_generator(point_total=3):
     while len(generated_point) < point_total * 2:
         float_rand_x = uniform(-5, 5)
         float_rand_y = uniform(-5, 5)
+        # TODO as parameter
         
-        generated_point = closeness_check(generated_point, [float_rand_x, float_rand_y])
+        current_point = closeness_check(generated_point, [float_rand_x, float_rand_y])
+        if current_point is not None:
+            generated_point.extend(current_point)
         
     return generated_point
 
@@ -46,10 +63,10 @@ def closeness_check(generated_list, current_point):
             # (i, i+1)
             point_to_compare = generated_list[i*2:i*2+2]
             if distance_calculator(current_point, point_to_compare) < 2:
-                break
+                return
         
-    generated_list.extend(current_point)
-    return generated_list
+    # generated_list.extend(current_point)
+    return current_point
 
 def distance_calculator(point1, point2):
     """
