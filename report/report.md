@@ -101,7 +101,7 @@ Please see the additional material video.
     * 49 sec: finish of the first auction
     * 54 sec: start of the second auction (total points: 5)
     * 2 min 36 sec: finish of the second auction
-    * 2 min 41 sec: finish of the third auction (total points: 3)
+    * 2 min 41 sec: start of the third auction (total points: 3)
     ```
 
 1. Task performance
